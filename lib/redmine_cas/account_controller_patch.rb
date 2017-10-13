@@ -11,9 +11,8 @@ module RedmineCAS
 
     module InstanceMethods
       def logout_with_cas
-        # if CAS module is inactive or no CAS Session is active
-        # logout in regular fashion
-        if !RedmineCAS.enabled? || session[:cas_user].nil?
+        # if CAS module is inactive => logout in regular fashion
+        if !RedmineCAS.enabled?
           return logout_without_cas
         end
 
@@ -67,10 +66,16 @@ module RedmineCAS
       end
 
       def cas_user_register
+        # if username is in database throw error
+        if User.current.logged?
+          return redirect_to :action => "page", :controller => "my"
+        end
+
         # check that we have an active CAS Session
         if CASClient::Frameworks::Rails::Filter.filter(self)
-          # if username is in database throw error
-          return cas_failure unless User.find_by_login(session[:cas_user]).nil?
+          if !User.find_by_login(session[:cas_user]).nil?
+            return redirect_to :action => "login"
+          end
 
           # check whether we have form data
           if !request.post?
@@ -99,15 +104,13 @@ module RedmineCAS
               cas_login @user
 
               flash[:notice] = l(:notice_account_activated)
-              redirect_to my_account_path
+              return redirect_to my_account_path
             end # end of save
           end # end of check post
 
           # at this state always return the form
           return render "redmine_cas/cas_user_register"
         end # end of filter
-
-        return cas_failure
       end
 
       def cas_login user
