@@ -43,7 +43,7 @@ module RedmineCAS
           Rails.logger.info "Successful authentication for '#{user.login}' from #{request.remote_ip} at #{Time.now.utc}"
           user.update_attribute(:last_login_on, Time.now)
 
-          cas_login
+          cas_login user
 
           redirect_to_ref_or_default
         end
@@ -96,7 +96,7 @@ module RedmineCAS
             @user.activate
             if @user.save
               # perform login
-              cas_login
+              cas_login @user
 
               flash[:notice] = l(:notice_account_activated)
               redirect_to my_account_path
@@ -110,7 +110,7 @@ module RedmineCAS
         return cas_failure
       end
 
-      def cas_login
+      def cas_login user
         if RedmineCAS.single_sign_out_enabled?
           # logged_user= would start a new session and break single sign-out
           User.current = user
