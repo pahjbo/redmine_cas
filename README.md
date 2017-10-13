@@ -1,6 +1,8 @@
 # Redmine CAS plugin
 
 This is a fork of Ninech's <a href="https://github.com/ninech/redmine_cas">Redmine CAS Plugin</a>.
+
+
 The key differences:
 
 * Adjusted to work on Redmine 3.4.
