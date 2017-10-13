@@ -1,0 +1,31 @@
+<%= title l(:label_user_new) %>
+
+<p>Please verify your details below to create an account in Redmine</p>
+
+<%= labelled_form_for @user, :html => {:multipart => true} do |f| %>
+  <p><%= f.text_field :login, :required => true, :size => 25  %></p>
+  <p><%= f.text_field :firstname, :required => true %></p>
+  <p><%= f.text_field :lastname, :required => true %></p>
+  <p><%= f.text_field :mail, :required => true %></p>
+  <p>
+    <%= submit_tag l(:button_register) %>
+  </p>
+<% end %>
+
+<% if @auth_sources.present? && @auth_sources.any?(&:searchable?) %>
+  <%= javascript_tag do %>
+    observeAutocompleteField('user_login', '<%= escape_javascript autocomplete_for_new_user_auth_sources_path %>', {
+      select: function(event, ui) {
+        $('input#user_firstname').val(ui.item.firstname);
+        $('input#user_lastname').val(ui.item.lastname);
+        $('input#user_mail').val(ui.item.mail);
+        $('select#user_auth_source_id option').each(function(){
+          if ($(this).attr('value') == ui.item.auth_source_id) {
+            $(this).attr('selected', true);
+            $('select#user_auth_source_id').trigger('change');
+          }
+        });
+      }
+    });
+  <% end %>
+<% end %>
