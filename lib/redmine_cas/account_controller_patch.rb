@@ -110,13 +110,13 @@ module RedmineCAS
               else
                 return cas_account_pending
               end # end of active
-            end # end of check post
+            end # end of save
 
             # always return form at this stage
             return render "redmine_cas/cas_user_register"
-          end
-
-        return cas_failure
+          end # end of check post
+          return cas_failure
+        end # end of filter 
       end
 
       def cas_account_pending
