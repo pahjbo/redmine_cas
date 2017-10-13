@@ -73,8 +73,12 @@ module RedmineCAS
 
         # check that we have an active CAS Session
         if CASClient::Frameworks::Rails::Filter.filter(self)
-          if !User.find_by_login(session[:cas_user]).nil?
-            return redirect_to :action => "login"
+          @user = !User.find_by_login(session[:cas_user])
+          if @user.nil?
+            return cas_account_pending unless @user.active?
+            cas_login @user
+
+            return redirect_to :action => "page", :controller => "my"
           end
 
           # check whether we have form data
