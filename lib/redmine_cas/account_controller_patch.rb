@@ -16,7 +16,7 @@ module RedmineCAS
         if !RedmineCAS.enabled? || session[:cas_user].empty?
           return logout_without_cas
         end
-        
+
         logout_user
         CASClient::Frameworks::Rails::Filter.logout(self, home_url)
       end
@@ -41,7 +41,7 @@ module RedmineCAS
           return cas_account_pending unless user.active?
 
           user.update_attribute(:last_login_on, Time.now)
-          user.update_attributes(RedmineCAS.user_extra_attributes_from_session(session))
+
           if RedmineCAS.single_sign_out_enabled?
             # logged_user= would start a new session and break single sign-out
             User.current = user
@@ -103,9 +103,15 @@ module RedmineCAS
 
             # try to save
             if @user.save
-              self.logged_user = @user
+              if @user.active?
+                if RedmineCAS.single_sign_out_enabled?
+                  # logged_user= would start a new session and break single sign-out
+                  User.current = user
+                  start_user_session(user)
+                else
+                  self.logged_user = user
+                end
 
-              if user.active?
                 flash[:notice] = l(:notice_account_activated)
                 return redirect_to my_account_path
               else
