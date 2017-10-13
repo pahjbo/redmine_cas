@@ -15,9 +15,9 @@ module RedmineCAS
         # logout in regular fashion
         if !RedmineCAS.enabled? || session[:cas_user].empty?
           return logout_without_cas
-        else
-          logout_user
-          CASClient::Frameworks::Rails::Filter.logout(self, home_url)
+
+        logout_user
+        CASClient::Frameworks::Rails::Filter.logout(self, home_url)
       end
 
       def cas
@@ -116,7 +116,7 @@ module RedmineCAS
             return render "redmine_cas/cas_user_register"
           end # end of check post
           return cas_failure
-        end # end of filter 
+        end # end of filter
       end
 
       def cas_account_pending
