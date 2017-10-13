@@ -1,11 +1,15 @@
 # Redmine CAS plugin
 
-Plugin to CASify your Redmine installation.
+This is a fork of Ninech's <a href="https://github.com/ninech/redmine_cas">Redmine CAS Plugin</a>.
+The key differences:
+
+* Adjusted to work on Redmine 3.4.
+* Show a registration form when creating new users on the fly.
+* Configure whether users are automatically redirected to the CAS login page when signin in.
 
 ## Compatibility
 
-Tested with Redmine 2.2.x, 2.3.x, 2.4.x and 2.5.x but it should work fine with Redmine 2.x and possibly 1.x.
-We use [CASino](http://casino.rbcas.com) as CAS server, but it might work with others as well.
+Tested with Redmine 3.4
 
 ## Installation
 
@@ -19,12 +23,9 @@ We use [CASino](http://casino.rbcas.com) as CAS server, but it might work with o
 
 ### Usage
 
-If your installation has no public areas ("Authentication required") and you are not logged in, you will be
-redirected to the CAS-login page.  The default login page will still work when you access it directly 
-(http://example.com/path-to-redmine/login).
+If your installation has no public areas ("Authentication required") and you are not logged in, you will be redirected to the login page. The login page will show a link that lets the user login with CAS.
 
-If your installation is not "Authentication required", the login page will show a link that lets you login
-with CAS.
+When "Automatic redirect" is enabled, users are automatically redirected to the CAS server, without showing the login page. To access the login page, you will need to access it directly (http://example.com/path-to-redmine/login).
 
 ### Single Sign Out, Single Logout
 
@@ -33,8 +34,9 @@ You can achieve this with a tiny plugin: [redmine_activerecord_session_store](ht
 
 ### Auto-create users
 
-By enabling this setting, successfully authenticated users will be automatically added into Redmine if they do not already exist. You *must* define the attribute mapping for at least firstname, lastname and mail attributes for this to work.
+By enabling this setting, successfully authenticated users can register themselves to Redmine during their first login. Note: These user accounts are always created as active users, regardless of the self registration settings in Redmine.
 
 ## Copyright
 
 Copyright (c) 2013-2014 Nine Internet Solutions AG. See LICENSE.txt for further details.
+Copyright (c) 2017 Joeri Jongbloets.
