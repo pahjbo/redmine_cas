@@ -1,52 +1,30 @@
-<%= title l(:label_user_new) %>
+<h2><%=l(:label_register)%> </h2>
 
-<p>Please provide and verify your details below.</p>
+<p>
+  Before you can use Redmine, please provide and verify your details below:
+</p>
 
-<%= labelled_form_for @user, :html => {:multipart => true} do |f| %>
-  <div id="user_form">
-    <!--[form:user]-->
-    <div class="splitcontentleft">
-      <fieldset class="box tabular">
-        <legend><%=l(:label_information_plural)%></legend>
-        <p><%= f.text_field :login, :required => true, :disabled => true, :size => 25  %></p>
-        <p><%= f.text_field :firstname, :required => true %></p>
-        <p><%= f.text_field :lastname, :required => true %></p>
-        <p><%= f.text_field :mail, :required => true %></p>
-        <% unless @user.force_default_language? %>
-          <p><%= f.select :language, lang_options_for_select %></p>
-        <% end %>
-        <% @user.custom_field_values.each do |value| %>
-          <p><%= custom_field_tag_with_label :user, value %></p>
-        <% end %>
-      </fieldset>
-    </div>
+<%= labelled_form_for @user, :url => "cas_user_register", :html => {:multipart => true} do |f| %>
+  <%= error_messages_for 'user' %>
 
-    <div class="splitcontentright">
-      <fieldset class="box">
-        <legend><%=l(:field_mail_notification)%></legend>
-        <%= render :partial => 'users/mail_notifications' %>
-      </fieldset>
-      <fieldset class="box tabular">
-        <legend><%=l(:label_preferences)%></legend>
-        <%= render :partial => 'users/preferences' %>
-        <%= call_hook(:view_users_form_preferences, :user => @user, :form => f) %>
-      </fieldset>
-    </div>
+  <div class="box tabular">
+    <legend><%=l(:label_information_plural)%></legend>
+    <p><%= f.text_field :login, :required => true, :disabled => true, :size => 25  %></p>
+    <p><%= f.text_field :firstname, :required => true %></p>
+    <p><%= f.text_field :lastname, :required => true %></p>
+    <p><%= f.text_field :mail, :required => true %></p>
 
-    <div style="clear:left;"></div>
-    <!--[eoform:user]-->
-
-    <% if email_delivery_enabled? %>
-      <p>
-        <label>
-          <%= check_box_tag 'send_information', 1, params[:send_information] %>
-          <%= l(:label_send_information) %>
-        </label>
-      </p>
+    <%= labelled_fields_for :pref, @user.pref do |pref_fields| %>
+      <p><%= pref_fields.check_box :hide_mail %></p>
     <% end %>
 
-    <p>
-      <%= submit_tag l(:redmine_cas_button_register) %>
-    </p>
+    <% unless @user.force_default_language? %>
+      <p><%= f.select :language, lang_options_for_select %></p>
+    <% end %>
+
+    <% @user.custom_field_values.select {|v| (Setting.show_custom_fields_on_registration? && v.editable?) || v.required?}.each do |value| %>
+      <p><%= custom_field_tag_with_label :user, value %></p>
+    <% end %>
   </div>
+  <%= submit_tag l(:button_submit) %>
 <% end %>
