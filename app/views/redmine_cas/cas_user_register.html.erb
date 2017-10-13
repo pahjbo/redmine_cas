@@ -4,7 +4,7 @@
   Before you can use Redmine, please provide and verify your details below:
 </p>
 
-<%= labelled_form_for @user, :url => "cas_user_register", :html => {:multipart => true} do |f| %>
+<%= labelled_form_for @user, :url => "register", :html => {:multipart => true} do |f| %>
   <%= error_messages_for 'user' %>
 
   <div class="box tabular">
