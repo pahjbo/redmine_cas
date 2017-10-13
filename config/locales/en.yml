@@ -12,3 +12,5 @@ en:
   redmine_cas_user_exists: '"%{user}" was authenticated but could not be created in Redmine as the username already exists.'
   redmine_cas_user_not_found: '"%{user}" was authenticated but needs to be created in Redmine first.'
   redmine_cas_user_not_created: '"%{user}" was authenticated but could not be created automatically in Redmine. It must be added manually.'
+
+  redmine_cas_button_register: "Register"

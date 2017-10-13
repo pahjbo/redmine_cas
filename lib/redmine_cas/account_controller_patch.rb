@@ -13,7 +13,7 @@ module RedmineCAS
       def logout_with_cas
         # if CAS module is inactive or no CAS Session is active
         # logout in regular fashion
-        if !RedmineCAS.enabled? || session[:cas_user].empty?
+        if !RedmineCAS.enabled? || session[:cas_user].nil?
           return logout_without_cas
         end
 
@@ -74,12 +74,8 @@ module RedmineCAS
       def cas_user_register
         # check that we have an active CAS Session
         if CASClient::Frameworks::Rails::Filter.filter(self)
-          # search for existing users with same name
-          user = User.find_by_login(session[:cas_user])
           # if username is in database throw error
-          if !user.nil?
-            return cas_user_already_exists user
-          end
+          return cas_failure unless User.find_by_login(session[:cas_user]).nil?
 
           # check whether we have form data
           if !request.post?
@@ -106,10 +102,10 @@ module RedmineCAS
               if @user.active?
                 if RedmineCAS.single_sign_out_enabled?
                   # logged_user= would start a new session and break single sign-out
-                  User.current = user
-                  start_user_session(user)
+                  User.current = @user
+                  start_user_session(@user)
                 else
-                  self.logged_user = user
+                  self.logged_user = @user
                 end
 
                 flash[:notice] = l(:notice_account_activated)
@@ -118,12 +114,13 @@ module RedmineCAS
                 return cas_account_pending
               end # end of active
             end # end of save
-
-            # always return form at this stage
-            return render "redmine_cas/cas_user_register"
           end # end of check post
-          return cas_failure
+
+          # at this state always return the form
+          return render "redmine_cas/cas_user_register"
         end # end of filter
+
+        return cas_failure
       end
 
       def cas_account_pending
