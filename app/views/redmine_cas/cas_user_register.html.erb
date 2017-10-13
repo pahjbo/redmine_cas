@@ -1,31 +1,52 @@
 <%= title l(:label_user_new) %>
 
-<p>Please verify your details below to create an account in Redmine</p>
+<p>Please provide and verify your details below.</p>
 
 <%= labelled_form_for @user, :html => {:multipart => true} do |f| %>
-  <p><%= f.text_field :login, :required => true, :size => 25  %></p>
-  <p><%= f.text_field :firstname, :required => true %></p>
-  <p><%= f.text_field :lastname, :required => true %></p>
-  <p><%= f.text_field :mail, :required => true %></p>
-  <p>
-    <%= submit_tag l(:button_register) %>
-  </p>
-<% end %>
+  <div id="user_form">
+    <!--[form:user]-->
+    <div class="splitcontentleft">
+      <fieldset class="box tabular">
+        <legend><%=l(:label_information_plural)%></legend>
+        <p><%= f.text_field :login, :required => true, :disabled => true, :size => 25  %></p>
+        <p><%= f.text_field :firstname, :required => true %></p>
+        <p><%= f.text_field :lastname, :required => true %></p>
+        <p><%= f.text_field :mail, :required => true %></p>
+        <% unless @user.force_default_language? %>
+          <p><%= f.select :language, lang_options_for_select %></p>
+        <% end %>
+        <% @user.custom_field_values.each do |value| %>
+          <p><%= custom_field_tag_with_label :user, value %></p>
+        <% end %>
+      </fieldset>
+    </div>
 
-<% if @auth_sources.present? && @auth_sources.any?(&:searchable?) %>
-  <%= javascript_tag do %>
-    observeAutocompleteField('user_login', '<%= escape_javascript autocomplete_for_new_user_auth_sources_path %>', {
-      select: function(event, ui) {
-        $('input#user_firstname').val(ui.item.firstname);
-        $('input#user_lastname').val(ui.item.lastname);
-        $('input#user_mail').val(ui.item.mail);
-        $('select#user_auth_source_id option').each(function(){
-          if ($(this).attr('value') == ui.item.auth_source_id) {
-            $(this).attr('selected', true);
-            $('select#user_auth_source_id').trigger('change');
-          }
-        });
-      }
-    });
-  <% end %>
+    <div class="splitcontentright">
+      <fieldset class="box">
+        <legend><%=l(:field_mail_notification)%></legend>
+        <%= render :partial => 'users/mail_notifications' %>
+      </fieldset>
+      <fieldset class="box tabular">
+        <legend><%=l(:label_preferences)%></legend>
+        <%= render :partial => 'users/preferences' %>
+        <%= call_hook(:view_users_form_preferences, :user => @user, :form => f) %>
+      </fieldset>
+    </div>
+
+    <div style="clear:left;"></div>
+    <!--[eoform:user]-->
+
+    <% if email_delivery_enabled? %>
+      <p>
+        <label>
+          <%= check_box_tag 'send_information', 1, params[:send_information] %>
+          <%= l(:label_send_information) %>
+        </label>
+      </p>
+    <% end %>
+
+    <p>
+      <%= submit_tag l(:redmine_cas_button_register) %>
+    </p>
+  </div>
 <% end %>

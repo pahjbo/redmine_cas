@@ -40,15 +40,10 @@ module RedmineCAS
           return cas_user_not_found if user.nil?
           return cas_account_pending unless user.active?
 
+          Rails.logger.info "Successful authentication for '#{user.login}' from #{request.remote_ip} at #{Time.now.utc}"
           user.update_attribute(:last_login_on, Time.now)
 
-          if RedmineCAS.single_sign_out_enabled?
-            # logged_user= would start a new session and break single sign-out
-            User.current = user
-            start_user_session(user)
-          else
-            self.logged_user = user
-          end
+          cas_login
 
           redirect_to_ref_or_default
         end
@@ -87,32 +82,24 @@ module RedmineCAS
           else
             # process post params
             user_params = params[:user] || {}
+            pref_params = params[:pref] || {}
 
             @user = User.new
             @user.safe_attributes = user_params
+            @user.pref.safe_attributes = pref_params
             # we always set the login to the username of the cas session
             @user.login = session[:cas_user]
-            # we do not allow for admin creation
+            # we do not allow admin creation
             @user.admin = false
-            # generate random password
             @user.register
-
-            # try to save
+            # active user
+            @user.activate
             if @user.save
-              if @user.active?
-                if RedmineCAS.single_sign_out_enabled?
-                  # logged_user= would start a new session and break single sign-out
-                  User.current = @user
-                  start_user_session(@user)
-                else
-                  self.logged_user = @user
-                end
+              # perform login
+              cas_login
 
-                flash[:notice] = l(:notice_account_activated)
-                return redirect_to my_account_path
-              else
-                return cas_account_pending
-              end # end of active
+              flash[:notice] = l(:notice_account_activated)
+              redirect_to my_account_path
             end # end of save
           end # end of check post
 
@@ -121,6 +108,16 @@ module RedmineCAS
         end # end of filter
 
         return cas_failure
+      end
+
+      def cas_login
+        if RedmineCAS.single_sign_out_enabled?
+          # logged_user= would start a new session and break single sign-out
+          User.current = user
+          start_user_session(user)
+        else
+          self.logged_user = user
+        end
       end
 
       def cas_account_pending
