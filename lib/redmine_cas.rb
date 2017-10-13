@@ -9,17 +9,21 @@ module RedmineCAS
   end
 
   def enabled?
-    setting(:enabled)
+    setting('enabled')
+  end
+
+  def redirect?
+    setting('redirect')
   end
 
   def autocreate_users?
-    setting(:autocreate_users)
+    setting('autocreate_users')
   end
 
   def setup!
     return unless enabled?
     CASClient::Frameworks::Rails::Filter.configure(
-      :cas_base_url => setting(:cas_url),
+      :cas_base_url => setting('cas_url'),
       :logger => Rails.logger,
       :enable_single_sign_out => single_sign_out_enabled?
     )

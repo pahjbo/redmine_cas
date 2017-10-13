@@ -15,6 +15,7 @@ Redmine::Plugin.register :redmine_cas do
 
   settings :default => {
     'enabled' => false,
+    'redirect' => true,
     'cas_url' => 'https://',
     'attributes_mapping' => 'firstname=first_name&lastname=last_name&mail=email',
     'autocreate_users' => false

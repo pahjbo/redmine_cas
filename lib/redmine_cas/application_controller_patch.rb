@@ -12,7 +12,10 @@ module RedmineCAS
 
     module InstanceMethods
       def require_login_with_cas
-        return require_login_without_cas unless RedmineCAS.enabled?
+        if !RedmineCAS.enabled? || !RedmineCAS.redirect?
+          return require_login_without_cas
+        end
+        
         if !User.current.logged?
           referrer = request.fullpath;
           respond_to do |format|
