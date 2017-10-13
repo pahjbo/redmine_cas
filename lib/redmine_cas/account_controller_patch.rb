@@ -11,18 +11,21 @@ module RedmineCAS
 
     module InstanceMethods
       def logout_with_cas
-        return logout_without_cas unless RedmineCAS.enabled?
-        logout_user
-        CASClient::Frameworks::Rails::Filter.logout(self, home_url)
+        # if CAS module is inactive or no CAS Session is active
+        # logout in regular fashion
+        if !RedmineCAS.enabled? || session[:cas_user].empty?
+          return logout_without_cas
+        else
+          logout_user
+          CASClient::Frameworks::Rails::Filter.logout(self, home_url)
       end
 
       def cas
-        return redirect_to_action('login') unless RedmineCAS.enabled?
+        return redirect_to :action => 'login' unless RedmineCAS.enabled?
 
         if User.current.logged?
           # User already logged in.
-          redirect_to_ref_or_default
-          return
+          return redirect_to_ref_or_default
         end
 
         if CASClient::Frameworks::Rails::Filter.filter(self)
@@ -30,11 +33,7 @@ module RedmineCAS
 
           # Auto-create user if possible
           if user.nil? && RedmineCAS.autocreate_users?
-            user = User.new
-            user.login = session[:cas_user]
-            user.assign_attributes(RedmineCAS.user_extra_attributes_from_session(session))
-            return cas_user_not_created(user) if !user.save
-            user.reload
+            return redirect_to :action => 'cas_user_register'
           end
 
           return cas_user_not_found if user.nil?
@@ -71,17 +70,66 @@ module RedmineCAS
         end
       end
 
-      def cas_account_pending
-        render_403 :message => l(:notice_account_pending)
+      def cas_user_register
+        # check that we have an active CAS Session
+        if CASClient::Frameworks::Rails::Filter.filter(self)
+          # search for existing users with same name
+          user = User.find_by_login(session[:cas_user])
+          # if username is in database throw error
+          if !user.nil?
+            return cas_user_already_exists user
+          end
+
+          # check whether we have form data
+          if !request.post?
+            # create user object
+            @user = User.new(:language => Setting.default_language, :admin => false)
+            @user.login = session[:cas_user]
+            # pre-fill with information from CAS Ticket
+            @user.assign_attributes(RedmineCAS.user_extra_attributes_from_session(session))
+          else
+            # process post params
+            user_params = params[:user] || {}
+
+            @user = User.new
+            @user.safe_attributes = user_params
+            # we always set the login to the username of the cas session
+            @user.login = session[:cas_user]
+            # we do not allow for admin creation
+            @user.admin = false
+            # generate random password
+            @user.register
+
+            # try to save
+            if @user.save
+              self.logged_user = @user
+
+              if user.active?
+                flash[:notice] = l(:notice_account_activated)
+                return redirect_to my_account_path
+              else
+                return cas_account_pending
+              end # end of active
+            end # end of check post
+
+            # always return form at this stage
+            return render "redmine_cas/cas_user_register"
+          end
+
+        return cas_failure
       end
 
-      def cas_user_not_found
-        render_403 :message => l(:redmine_cas_user_not_found, :user => session[:cas_user])
+      def cas_account_pending
+        render_403 :message => l(:notice_account_pending)
       end
 
       def cas_user_not_created(user)
         logger.error "Could not auto-create user: #{user.errors.full_messages.to_sentence}"
         render_403 :message => l(:redmine_cas_user_not_created, :user => session[:cas_user])
+      end
+
+      def cas_failure
+        render_403 :message => l(:redmine_cas_failure)
       end
 
     end
