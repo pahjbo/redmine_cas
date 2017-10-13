@@ -15,7 +15,8 @@ module RedmineCAS
         # logout in regular fashion
         if !RedmineCAS.enabled? || session[:cas_user].empty?
           return logout_without_cas
-
+        end
+        
         logout_user
         CASClient::Frameworks::Rails::Filter.logout(self, home_url)
       end
