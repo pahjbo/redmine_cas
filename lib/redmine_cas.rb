@@ -35,7 +35,7 @@ module RedmineCAS
 
   def user_extra_attributes_from_session(session)
     attrs = {}
-    map = Rack::Utils.parse_nested_query setting(:attributes_mapping)
+    map = Rack::Utils.parse_nested_query setting('attributes_mapping')
     extra_attributes = session[:cas_extra_attributes] || {}
     map.each_pair do |key_redmine, key_cas|
       value = extra_attributes[key_cas]
