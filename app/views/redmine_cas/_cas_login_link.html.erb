@@ -1,7 +1,9 @@
 <% if Setting.plugin_redmine_cas['enabled'] %>
   <p style="text-align:center;">
   <strong>
-    <%= link_to("Login with Central Authentication Service", :controller => "account", :action => "cas", :ref => url_for(:controller => "my", :action => 'page', :only_path => true)) %>
+    <%= link_to("Login with Uni Central Authentication Service", :controller => "account", :action => "cas", :ref => url_for(:controller => "my", :action => 'page', :only_path => true)) %>
   </strong>
+  <br/>
+    <img src="https://login.manchester.ac.uk/cas/images/uom/university-1.png"></img>
   </p>
 <% end %>
