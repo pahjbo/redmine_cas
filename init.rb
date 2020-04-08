@@ -10,7 +10,7 @@ Redmine::Plugin.register :redmine_cas do
   author 'Nils Caspar (Nine Internet Solutions AG)'
   description 'Plugin to CASify your Redmine installation.'
   version '1.2.1'
-  url 'https://github.com/ninech/redmine_cas'
+  url 'https://github.com/pahjbo/redmine_cas'
   author_url 'http://www.nine.ch/'
 
   settings :default => {
